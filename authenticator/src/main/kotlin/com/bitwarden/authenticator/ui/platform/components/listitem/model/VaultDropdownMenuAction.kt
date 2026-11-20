@@ -8,4 +8,5 @@ enum class VaultDropdownMenuAction {
     COPY_TO_BITWARDEN,
     EDIT,
     DELETE,
+    TOGGLE_FAVORITE,
 }

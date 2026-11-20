@@ -15,6 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bitwarden.authenticator.ui.authenticator.feature.search.handlers.SearchHandlers
+import com.bitwarden.authenticator.ui.platform.components.listitem.ProvideRevealedCodeState
 import com.bitwarden.ui.platform.base.util.EventsEffect
 import com.bitwarden.ui.platform.base.util.bottomDivider
 import com.bitwarden.ui.platform.components.appbar.BitwardenSearchTopAppBar
@@ -79,11 +80,13 @@ fun ItemSearchScreen(
     ) {
         when (val viewState = state.viewState) {
             is ItemSearchState.ViewState.Content -> {
-                ItemSearchContent(
-                    viewState = viewState,
-                    searchHandlers = searchHandlers,
-                    modifier = Modifier.fillMaxSize(),
-                )
+                ProvideRevealedCodeState {
+                    ItemSearchContent(
+                        viewState = viewState,
+                        searchHandlers = searchHandlers,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
             }
 
             is ItemSearchState.ViewState.Empty -> {

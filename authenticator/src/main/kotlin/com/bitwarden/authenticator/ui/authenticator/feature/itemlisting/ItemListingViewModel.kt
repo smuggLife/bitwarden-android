@@ -212,6 +212,17 @@ class ItemListingViewModel @Inject constructor(
         }
     }
 
+    private fun handleToggleFavoriteClick(itemId: String) {
+        viewModelScope.launch {
+            val item = authenticatorRepository
+                .getItemStateFlow(itemId)
+                .first { it.data != null }
+                .data
+                ?: return@launch
+            authenticatorRepository.createItem(item.copy(favorite = !item.favorite))
+        }
+    }
+
     private fun handleDeleteItemClick(itemId: String) {
         mutableStateFlow.update {
             it.copy(
@@ -569,6 +580,7 @@ class ItemListingViewModel @Inject constructor(
             VaultDropdownMenuAction.EDIT -> handleEditItemClick(action.item.id)
             VaultDropdownMenuAction.COPY_TO_BITWARDEN -> handleCopyToBitwardenClick(action.item.id)
             VaultDropdownMenuAction.DELETE -> handleDeleteItemClick(action.item.id)
+            VaultDropdownMenuAction.TOGGLE_FAVORITE -> handleToggleFavoriteClick(action.item.id)
         }
     }
 

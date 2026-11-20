@@ -14,11 +14,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -274,6 +275,24 @@ fun VaultVerificationCodeItem(
 private const val REVEAL_TIMEOUT_MILLIS = 30_000L
 
 /**
+ * Holds the id of the one item whose code is currently revealed, so revealing a code hides the
+ * previously revealed one. Provided per list via [ProvideRevealedCodeState].
+ */
+private val LocalRevealedCodeId = staticCompositionLocalOf<MutableState<String?>?> { null }
+
+/**
+ * Lets all hidden-code items inside [content] share one revealed item: opening a code closes
+ * the previously opened one.
+ */
+@Composable
+fun ProvideRevealedCodeState(content: @Composable () -> Unit) {
+    CompositionLocalProvider(
+        LocalRevealedCodeId provides remember { mutableStateOf<String?>(null) },
+        content = content,
+    )
+}
+
+/**
  * A compact verification code item whose code is hidden until the item is tapped.
  *
  * Collapsed, it shows a single line: issuer on the left, account name on the right.
@@ -290,11 +309,13 @@ private fun HiddenVaultVerificationCodeItem(
     cardStyle: CardStyle,
     modifier: Modifier = Modifier,
 ) {
-    var isRevealed by rememberSaveable(displayItem.id) { mutableStateOf(false) }
+    val revealedCodeId = LocalRevealedCodeId.current
+        ?: remember { mutableStateOf<String?>(null) }
+    val isRevealed = revealedCodeId.value == displayItem.id
     if (isRevealed) {
         LaunchedEffect(Unit) {
             delay(REVEAL_TIMEOUT_MILLIS)
-            isRevealed = false
+            if (revealedCodeId.value == displayItem.id) revealedCodeId.value = null
         }
     }
 
@@ -308,7 +329,7 @@ private fun HiddenVaultVerificationCodeItem(
                     if (isRevealed) {
                         onItemClick()
                     } else {
-                        isRevealed = true
+                        revealedCodeId.value = displayItem.id
                     }
                 },
                 role = Role.Button,
@@ -320,12 +341,6 @@ private fun HiddenVaultVerificationCodeItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
     ) {
-        BitwardenIcon(
-            iconData = displayItem.startIcon,
-            tint = BitwardenTheme.colorScheme.icon.primary,
-            modifier = Modifier.size(size = 24.dp),
-        )
-
         Column(modifier = Modifier.weight(weight = 1f)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -414,6 +429,18 @@ private fun HiddenVaultVerificationCodeItem(
                     OverflowMenuItemData(
                         text = stringResource(id = BitwardenString.edit),
                         onClick = { onDropdownMenuClick(VaultDropdownMenuAction.EDIT) },
+                    ),
+                    OverflowMenuItemData(
+                        text = stringResource(
+                            id = if (displayItem.favorite) {
+                                BitwardenString.unfavorite
+                            } else {
+                                BitwardenString.favorite
+                            },
+                        ),
+                        onClick = {
+                            onDropdownMenuClick(VaultDropdownMenuAction.TOGGLE_FAVORITE)
+                        },
                     ),
                     if (displayItem.showMoveToBitwarden) {
                         OverflowMenuItemData(

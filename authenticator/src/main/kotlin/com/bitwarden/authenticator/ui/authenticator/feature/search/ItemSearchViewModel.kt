@@ -146,6 +146,17 @@ class ItemSearchViewModel @Inject constructor(
                 sendEvent(ItemSearchEvent.NavigateToEditItem(action.item.id))
             }
 
+            VaultDropdownMenuAction.TOGGLE_FAVORITE -> {
+                viewModelScope.launch {
+                    val item = authenticatorRepository
+                        .getItemStateFlow(itemId = action.item.id)
+                        .first { it.data != null }
+                        .data
+                        ?: return@launch
+                    authenticatorRepository.createItem(item.copy(favorite = !item.favorite))
+                }
+            }
+
             VaultDropdownMenuAction.DELETE -> {
                 mutableStateFlow.update {
                     it.copy(

@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.bitwarden.authenticator.ui.platform.components.listitem.ProvideRevealedCodeState
 import com.bitwarden.authenticator.ui.platform.components.listitem.VaultVerificationCodeItem
 import com.bitwarden.authenticator.ui.platform.components.listitem.model.SharedCodesDisplayState
 import com.bitwarden.authenticator.ui.platform.components.listitem.model.VaultDropdownMenuAction
@@ -195,33 +196,35 @@ fun ItemListingScreen(
     ) {
         when (val currentState = state.viewState) {
             is ItemListingState.ViewState.Content -> {
-                ItemListingContent(
-                    state = currentState,
-                    onItemClick = { viewModel.trySendAction(ItemListingAction.ItemClick(it)) },
-                    onDropdownMenuClick = { action, item ->
-                        viewModel.trySendAction(
-                            ItemListingAction.DropdownMenuClick(menuAction = action, item = item),
-                        )
-                    },
-                    onDownloadBitwardenClick = {
-                        viewModel.trySendAction(ItemListingAction.DownloadBitwardenClick)
-                    },
-                    onDismissDownloadBitwardenClick = {
-                        viewModel.trySendAction(ItemListingAction.DownloadBitwardenDismiss)
-                    },
-                    onSyncWithBitwardenClick = {
-                        viewModel.trySendAction(ItemListingAction.SyncWithBitwardenClick)
-                    },
-                    onDismissSyncWithBitwardenClick = {
-                        viewModel.trySendAction(ItemListingAction.SyncWithBitwardenDismiss)
-                    },
-                    onSyncLearnMoreClick = {
-                        viewModel.trySendAction(ItemListingAction.SyncLearnMoreClick)
-                    },
-                    onSectionExpandedClick = {
-                        viewModel.trySendAction(ItemListingAction.SectionExpandedClick(it))
-                    },
-                )
+                ProvideRevealedCodeState {
+                    ItemListingContent(
+                        state = currentState,
+                        onItemClick = { viewModel.trySendAction(ItemListingAction.ItemClick(it)) },
+                        onDropdownMenuClick = { action, item ->
+                            viewModel.trySendAction(
+                                ItemListingAction.DropdownMenuClick(menuAction = action, item = item),
+                            )
+                        },
+                        onDownloadBitwardenClick = {
+                            viewModel.trySendAction(ItemListingAction.DownloadBitwardenClick)
+                        },
+                        onDismissDownloadBitwardenClick = {
+                            viewModel.trySendAction(ItemListingAction.DownloadBitwardenDismiss)
+                        },
+                        onSyncWithBitwardenClick = {
+                            viewModel.trySendAction(ItemListingAction.SyncWithBitwardenClick)
+                        },
+                        onDismissSyncWithBitwardenClick = {
+                            viewModel.trySendAction(ItemListingAction.SyncWithBitwardenDismiss)
+                        },
+                        onSyncLearnMoreClick = {
+                            viewModel.trySendAction(ItemListingAction.SyncLearnMoreClick)
+                        },
+                        onSectionExpandedClick = {
+                            viewModel.trySendAction(ItemListingAction.SectionExpandedClick(it))
+                        },
+                    )
+                }
             }
 
             ItemListingState.ViewState.Loading -> {
