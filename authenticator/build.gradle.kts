@@ -29,6 +29,18 @@ val ciProperties = Properties().apply {
     }
 }
 
+/**
+ * Optional signing for personal release builds, read from the git-ignored user.properties:
+ * releaseStoreFile, releaseStorePassword, releaseKeyAlias, releaseKeyPassword.
+ */
+val releaseSigningProperties = Properties().apply {
+    val userPropsFile = File(rootDir, "user.properties")
+    if (userPropsFile.exists()) {
+        FileInputStream(userPropsFile).use { load(it) }
+    }
+}
+val hasReleaseSigning = releaseSigningProperties.getProperty("releaseStoreFile") != null
+
 base {
     // Set the base archive name for publishing purposes. This is used to derive the
     // APK and AAB artifact names when uploading to Firebase and Play Store.
@@ -82,6 +94,14 @@ configure<ApplicationExtension> {
             storeFile = file("../keystores/debug-bwa.keystore")
             storePassword = "android"
         }
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(releaseSigningProperties.getProperty("releaseStoreFile"))
+                storePassword = releaseSigningProperties.getProperty("releaseStorePassword")
+                keyAlias = releaseSigningProperties.getProperty("releaseKeyAlias")
+                keyPassword = releaseSigningProperties.getProperty("releaseKeyPassword")
+            }
+        }
     }
 
     buildTypes {
@@ -101,6 +121,11 @@ configure<ApplicationExtension> {
         }
 
         release {
+            // Own package id so this build can be installed next to the official app.
+            applicationIdSuffix = ".totp"
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             manifestPlaceholders["targetBitwardenAppId"] = "com.x8bit.bitwarden"
             @Suppress("MaxLineLength")
             buildConfigField(
