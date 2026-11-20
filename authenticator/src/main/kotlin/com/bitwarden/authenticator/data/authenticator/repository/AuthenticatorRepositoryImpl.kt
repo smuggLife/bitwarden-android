@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -189,10 +190,12 @@ class AuthenticatorRepositoryImpl @Inject constructor(
                     DataState.Loading -> flowOf(DataState.Loading)
                     is DataState.Loaded -> totpCodeManager
                         .getTotpCodesFlow(authenticatorItems.data)
+                        .skipUntilCodesGenerated(authenticatorItems.data)
                         .map { DataState.Loaded(it) }
 
                     is DataState.Pending -> totpCodeManager
                         .getTotpCodesFlow(authenticatorItems.data)
+                        .skipUntilCodesGenerated(authenticatorItems.data)
                         .map { DataState.Loaded(it) }
                 }
             }
@@ -383,3 +386,12 @@ class AuthenticatorRepositoryImpl @Inject constructor(
         }
     }
 }
+
+/**
+ * Codes are generated asynchronously, so the codes flow first emits an empty list even when
+ * there are items. Passing that on makes the list briefly show the empty "Add code" screen on
+ * startup. Skip empty emissions while there are items, so the screen stays on "loading" instead.
+ */
+private fun Flow<List<VerificationCodeItem>>.skipUntilCodesGenerated(
+    items: List<AuthenticatorItem>,
+): Flow<List<VerificationCodeItem>> = filter { it.isNotEmpty() || items.isEmpty() }
