@@ -314,6 +314,7 @@ class ItemSearchViewModel @Inject constructor(
                     .toSharedCodesDisplayState(
                         alertThresholdSeconds = 7,
                         isShowNextCodeEnabled = state.isShowNextCodeEnabled,
+                        isHideCodesEnabled = settingsRepository.isHideCodesEnabled,
                     )
             }
         }
@@ -336,6 +337,7 @@ class ItemSearchViewModel @Inject constructor(
                                     .sharedCodesStateFlow
                                     .value,
                                 showOverflow = true,
+                                isHideCodesEnabled = settingsRepository.isHideCodesEnabled,
                             )
                         }
                         .toImmutableList(),

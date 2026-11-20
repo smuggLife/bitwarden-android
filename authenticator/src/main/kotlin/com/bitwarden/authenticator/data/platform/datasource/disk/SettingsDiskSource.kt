@@ -88,6 +88,11 @@ interface SettingsDiskSource : FlightRecorderDiskSource {
     val isShowNextCodeEnabledFlow: Flow<Boolean?>
 
     /**
+     * The current setting for hiding TOTP codes until an item is tapped.
+     */
+    var isHideCodesEnabled: Boolean?
+
+    /**
      * Whether the user has previously dismissed the download Bitwarden action card.
      */
     var hasUserDismissedDownloadBitwardenCard: Boolean?

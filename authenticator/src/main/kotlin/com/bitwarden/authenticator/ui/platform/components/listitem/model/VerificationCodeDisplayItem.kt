@@ -25,4 +25,5 @@ data class VerificationCodeDisplayItem(
     val favorite: Boolean,
     val showOverflow: Boolean,
     val showMoveToBitwarden: Boolean,
+    val isCodeHidden: Boolean = false,
 ) : Parcelable

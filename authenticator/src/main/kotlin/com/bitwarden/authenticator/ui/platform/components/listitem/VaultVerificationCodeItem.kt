@@ -1,5 +1,6 @@
 package com.bitwarden.authenticator.ui.platform.components.listitem
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -10,8 +11,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -23,6 +30,7 @@ import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.bitwarden.authenticator.ui.platform.components.listitem.model.VaultDropdownMenuAction
 import com.bitwarden.authenticator.ui.platform.components.listitem.model.VerificationCodeDisplayItem
 import com.bitwarden.core.util.persistentListOfNotNull
@@ -38,6 +46,7 @@ import com.bitwarden.ui.platform.components.model.CardStyle
 import com.bitwarden.ui.platform.resource.BitwardenDrawable
 import com.bitwarden.ui.platform.resource.BitwardenString
 import com.bitwarden.ui.platform.theme.BitwardenTheme
+import kotlinx.coroutines.delay
 
 /**
  * The verification code item displayed to the user.
@@ -56,6 +65,16 @@ fun VaultVerificationCodeItem(
     cardStyle: CardStyle,
     modifier: Modifier = Modifier,
 ) {
+    if (displayItem.isCodeHidden) {
+        HiddenVaultVerificationCodeItem(
+            displayItem = displayItem,
+            onItemClick = onItemClick,
+            onDropdownMenuClick = onDropdownMenuClick,
+            cardStyle = cardStyle,
+            modifier = modifier,
+        )
+        return
+    }
     VaultVerificationCodeItem(
         authCode = displayItem.authCode,
         nextAuthCode = displayItem.nextAuthCode,
@@ -248,6 +267,187 @@ fun VaultVerificationCodeItem(
         }
     }
 }
+
+/**
+ * How long a revealed code stays visible before it is hidden again.
+ */
+private const val REVEAL_TIMEOUT_MILLIS = 30_000L
+
+/**
+ * A compact verification code item whose code is hidden until the item is tapped.
+ *
+ * Collapsed, it shows a single line: issuer on the left, account name on the right.
+ * Tapping reveals a second line with the countdown, the code in a large font and, if enabled,
+ * the next code in a smaller font. Tapping a revealed item copies the code. The code is hidden
+ * again after [REVEAL_TIMEOUT_MILLIS].
+ */
+@Suppress("LongMethod", "MagicNumber")
+@Composable
+private fun HiddenVaultVerificationCodeItem(
+    displayItem: VerificationCodeDisplayItem,
+    onItemClick: () -> Unit,
+    onDropdownMenuClick: (VaultDropdownMenuAction) -> Unit,
+    cardStyle: CardStyle,
+    modifier: Modifier = Modifier,
+) {
+    var isRevealed by rememberSaveable(displayItem.id) { mutableStateOf(false) }
+    if (isRevealed) {
+        LaunchedEffect(Unit) {
+            delay(REVEAL_TIMEOUT_MILLIS)
+            isRevealed = false
+        }
+    }
+
+    Row(
+        modifier = modifier
+            .testTag(tag = "Item")
+            .defaultMinSize(minHeight = 48.dp)
+            .cardStyle(
+                cardStyle = cardStyle,
+                onClick = {
+                    if (isRevealed) {
+                        onItemClick()
+                    } else {
+                        isRevealed = true
+                    }
+                },
+                role = Role.Button,
+                paddingStart = 16.dp,
+                paddingTop = 4.dp,
+                paddingEnd = 4.dp,
+                paddingBottom = 4.dp,
+            ),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
+    ) {
+        BitwardenIcon(
+            iconData = displayItem.startIcon,
+            tint = BitwardenTheme.colorScheme.icon.primary,
+            modifier = Modifier.size(size = 24.dp),
+        )
+
+        Column(modifier = Modifier.weight(weight = 1f)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+            ) {
+                Text(
+                    modifier = Modifier
+                        .testTag(tag = "Name")
+                        .weight(weight = 1f),
+                    text = displayItem.title,
+                    style = BitwardenTheme.typography.bodyLarge,
+                    color = BitwardenTheme.colorScheme.text.primary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                val subtitle = displayItem.subtitle
+                if (!subtitle.isNullOrEmpty()) {
+                    Text(
+                        modifier = Modifier
+                            .testTag(tag = "Username")
+                            .widthIn(max = 160.dp),
+                        text = subtitle,
+                        style = BitwardenTheme.typography.bodyMedium,
+                        color = BitwardenTheme.colorScheme.text.secondary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+
+            AnimatedVisibility(
+                visible = isRevealed,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically(),
+                label = "AnimateRevealCode",
+            ) {
+                Row(
+                    modifier = Modifier.padding(top = 4.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(space = 12.dp),
+                ) {
+                    BitwardenCircularCountdownIndicator(
+                        modifier = Modifier.testTag(tag = "CircularCountDown"),
+                        timeLeftSeconds = displayItem.timeLeftSeconds,
+                        periodSeconds = displayItem.periodSeconds,
+                        alertThresholdSeconds = displayItem.alertThresholdSeconds,
+                    )
+                    Text(
+                        modifier = Modifier.testTag(tag = "AuthCode"),
+                        text = displayItem.authCode.toGroupedCode(),
+                        style = BitwardenTheme.typography.sensitiveInfoMedium.copy(
+                            fontSize = 28.sp,
+                            lineHeight = 34.sp,
+                            textDirection = TextDirection.Ltr,
+                        ),
+                        color = BitwardenTheme.colorScheme.text.primary,
+                    )
+                    val nextCode = displayItem.nextAuthCode
+                    if (nextCode != null) {
+                        val nextCodeDescription = stringResource(
+                            id = BitwardenString.next_code_x,
+                            formatArgs = arrayOf(nextCode),
+                        )
+                        Text(
+                            modifier = Modifier
+                                .testTag(tag = "NextAuthCode")
+                                .semantics { contentDescription = nextCodeDescription },
+                            text = nextCode.toGroupedCode(),
+                            style = BitwardenTheme.typography.sensitiveInfoSmall.copy(
+                                textDirection = TextDirection.Ltr,
+                            ),
+                            color = BitwardenTheme.colorScheme.text.secondary,
+                        )
+                    }
+                }
+            }
+        }
+
+        if (displayItem.showOverflow) {
+            BitwardenOverflowActionItem(
+                menuItemDataList = persistentListOfNotNull(
+                    OverflowMenuItemData(
+                        text = stringResource(id = BitwardenString.copy),
+                        onClick = { onDropdownMenuClick(VaultDropdownMenuAction.COPY_CODE) },
+                    ),
+                    OverflowMenuItemData(
+                        text = stringResource(id = BitwardenString.edit),
+                        onClick = { onDropdownMenuClick(VaultDropdownMenuAction.EDIT) },
+                    ),
+                    if (displayItem.showMoveToBitwarden) {
+                        OverflowMenuItemData(
+                            text = stringResource(id = BitwardenString.copy_to_bitwarden_vault),
+                            onClick = {
+                                onDropdownMenuClick(VaultDropdownMenuAction.COPY_TO_BITWARDEN)
+                            },
+                        )
+                    } else {
+                        null
+                    },
+                    OverflowMenuItemData(
+                        text = stringResource(id = BitwardenString.delete_item),
+                        onClick = { onDropdownMenuClick(VaultDropdownMenuAction.DELETE) },
+                    ),
+                ),
+                vectorIconRes = BitwardenDrawable.ic_ellipsis_horizontal,
+                testTag = "Options",
+            )
+        } else {
+            BitwardenStandardIconButton(
+                vectorIconRes = BitwardenDrawable.ic_copy,
+                contentDescription = stringResource(id = BitwardenString.copy),
+                onClick = onItemClick,
+            )
+        }
+    }
+}
+
+/**
+ * Groups a TOTP code into blocks of three digits, e.g. "123456" -> "123 456".
+ */
+private fun String.toGroupedCode(): String =
+    chunked(size = 3) { it.padEnd(length = 3, padChar = ' ') }.joinToString(separator = " ")
 
 @Suppress("MagicNumber")
 @Preview(showBackground = true)

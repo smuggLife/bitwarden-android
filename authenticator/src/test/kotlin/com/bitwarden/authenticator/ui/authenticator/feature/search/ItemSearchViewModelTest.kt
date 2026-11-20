@@ -58,6 +58,7 @@ class ItemSearchViewModelTest : BaseViewModelTest() {
     private val mutableIsShowNextCodeEnabledFlow = MutableStateFlow(false)
     private val mockSettingsRepository = mockk<SettingsRepository> {
         every { isShowNextCodeEnabled } returns false
+        every { isHideCodesEnabled } returns false
         every { isShowNextCodeEnabledFlow } returns mutableIsShowNextCodeEnabledFlow
     }
     private val mutableSnackbarFlow = bufferedMutableSharedFlow<BitwardenSnackbarData>()

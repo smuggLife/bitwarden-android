@@ -15,6 +15,7 @@ fun VerificationCodeItem.toDisplayItem(
     isShowNextCodeEnabled: Boolean,
     sharedVerificationCodesState: SharedVerificationCodesState,
     showOverflow: Boolean,
+    isHideCodesEnabled: Boolean = false,
 ): VerificationCodeDisplayItem = VerificationCodeDisplayItem(
     id = id,
     title = issuer ?: label ?: "--",
@@ -32,6 +33,7 @@ fun VerificationCodeItem.toDisplayItem(
         isShowNextCodeEnabled && timeLeftSeconds < NEXT_CODE_THRESHOLD_SECONDS
     },
     showOverflow = showOverflow,
+    isCodeHidden = isHideCodesEnabled,
     favorite = (source as? AuthenticatorItem.Source.Local)?.isFavorite ?: false,
     showMoveToBitwarden = when (source) {
         // Shared items should never show "Copy to Bitwarden vault" action:

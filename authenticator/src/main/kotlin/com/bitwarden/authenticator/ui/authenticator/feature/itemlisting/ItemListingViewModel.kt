@@ -505,6 +505,7 @@ class ItemListingViewModel @Inject constructor(
                 action.sharedCodesState.toSharedCodesDisplayState(
                     alertThresholdSeconds = state.alertThresholdSeconds,
                     isShowNextCodeEnabled = state.isShowNextCodeEnabled,
+                    isHideCodesEnabled = settingsRepository.isHideCodesEnabled,
                     currentSections = currentCodes?.sections.orEmpty(),
                 )
             }
@@ -531,6 +532,7 @@ class ItemListingViewModel @Inject constructor(
                                 .sharedCodesStateFlow
                                 .value,
                             showOverflow = true,
+                            isHideCodesEnabled = settingsRepository.isHideCodesEnabled,
                         )
                     }
                     .sortAlphabetically()
@@ -545,6 +547,7 @@ class ItemListingViewModel @Inject constructor(
                                 .sharedCodesStateFlow
                                 .value,
                             showOverflow = true,
+                            isHideCodesEnabled = settingsRepository.isHideCodesEnabled,
                         )
                     }
                     .sortAlphabetically()

@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">Authenticator</string>
+    <string name="app_name" translatable="false">TOTP</string>
+    <string name="hide_codes" translatable="false">Hide codes</string>
+    <string name="hide_codes_description" translatable="false">Codes stay hidden until you tap an item. Tap again to copy.</string>
 </resources>

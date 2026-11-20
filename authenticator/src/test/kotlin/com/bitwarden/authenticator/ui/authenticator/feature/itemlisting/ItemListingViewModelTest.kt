@@ -66,6 +66,7 @@ class ItemListingViewModelTest : BaseViewModelTest() {
             authenticatorAlertThresholdSecondsFlow
         } returns mutableAuthenticatorAlertThresholdFlow
         every { isShowNextCodeEnabled } returns false
+        every { isHideCodesEnabled } returns false
         every { isShowNextCodeEnabledFlow } returns mutableIsShowNextCodeEnabledFlow
         every { hasUserDismissedDownloadBitwardenCard } returns false
     }

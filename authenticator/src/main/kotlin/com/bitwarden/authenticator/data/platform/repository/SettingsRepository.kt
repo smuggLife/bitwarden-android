@@ -104,6 +104,11 @@ interface SettingsRepository : FlightRecorderManager {
     val isShowNextCodeEnabledFlow: Flow<Boolean>
 
     /**
+     * Whether TOTP codes are hidden in the list until the item is tapped.
+     */
+    var isHideCodesEnabled: Boolean
+
+    /**
      * Whether the user has previously dismissed the download Bitwarden action card.
      */
     var hasUserDismissedDownloadBitwardenCard: Boolean

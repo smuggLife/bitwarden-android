@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.bitwarden.authenticator.R
 import com.bitwarden.authenticator.data.platform.manager.lock.model.AppTimeout
 import com.bitwarden.authenticator.ui.platform.components.biometrics.BiometricChanges
 import com.bitwarden.authenticator.ui.platform.feature.settings.data.model.DefaultSaveOption
@@ -217,6 +218,10 @@ fun SettingsScreen(
                 },
                 defaultSaveOption = state.defaultSaveOption,
                 isShowNextCodeEnabled = state.isShowNextCodeEnabled,
+                onHideCodesToggle = {
+                    viewModel.trySendAction(SettingsAction.DataClick.HideCodesToggle(it))
+                },
+                isHideCodesEnabled = state.isHideCodesEnabled,
                 shouldShowDefaultSaveOptions = state.showDefaultSaveOptionRow,
                 shouldShowSyncWithBitwardenApp = state.showSyncWithBitwarden,
             )
@@ -361,6 +366,8 @@ private fun ColumnScope.VaultSettings(
     onSyncLearnMoreClick: () -> Unit,
     onDefaultSaveOptionUpdated: (DefaultSaveOption) -> Unit,
     onShowNextCodeToggle: (Boolean) -> Unit,
+    isHideCodesEnabled: Boolean,
+    onHideCodesToggle: (Boolean) -> Unit,
     shouldShowSyncWithBitwardenApp: Boolean,
     shouldShowDefaultSaveOptions: Boolean,
 ) {
@@ -449,9 +456,20 @@ private fun ColumnScope.VaultSettings(
         subtext = stringResource(id = BitwardenString.see_upcoming_codes_in_the_list),
         isChecked = isShowNextCodeEnabled,
         onCheckedChange = onShowNextCodeToggle,
-        cardStyle = CardStyle.Bottom,
+        cardStyle = CardStyle.Middle(),
         modifier = Modifier
             .testTag("ShowNextCodeToggle")
+            .fillMaxWidth()
+            .standardHorizontalMargin(),
+    )
+    BitwardenSwitch(
+        label = stringResource(id = R.string.hide_codes),
+        subtext = stringResource(id = R.string.hide_codes_description),
+        isChecked = isHideCodesEnabled,
+        onCheckedChange = onHideCodesToggle,
+        cardStyle = CardStyle.Bottom,
+        modifier = Modifier
+            .testTag("HideCodesToggle")
             .fillMaxWidth()
             .standardHorizontalMargin(),
     )

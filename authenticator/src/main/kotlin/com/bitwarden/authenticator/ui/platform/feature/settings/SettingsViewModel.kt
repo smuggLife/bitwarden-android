@@ -71,6 +71,7 @@ class SettingsViewModel @Inject constructor(
             sharedAccountsState = authenticatorRepository.sharedCodesStateFlow.value,
             isScreenCaptureAllowed = settingsRepository.isScreenCaptureAllowed,
             isShowNextCodeEnabled = settingsRepository.isShowNextCodeEnabled,
+            isHideCodesEnabled = settingsRepository.isHideCodesEnabled,
             isDynamicColorsEnabled = settingsRepository.isDynamicColorsEnabled,
             appTimeout = settingsRepository.appTimeoutState,
         ),
@@ -288,6 +289,13 @@ class SettingsViewModel @Inject constructor(
         mutableStateFlow.update { it.copy(isShowNextCodeEnabled = action.enabled) }
     }
 
+    private fun handleHideCodesToggle(
+        action: SettingsAction.DataClick.HideCodesToggle,
+    ) {
+        settingsRepository.isHideCodesEnabled = action.enabled
+        mutableStateFlow.update { it.copy(isHideCodesEnabled = action.enabled) }
+    }
+
     private fun handleShowNextCodeUpdated(
         action: SettingsAction.Internal.ShowNextCodeUpdated,
     ) {
@@ -335,6 +343,9 @@ class SettingsViewModel @Inject constructor(
 
             is SettingsAction.DataClick.ShowNextCodeToggle ->
                 handleShowNextCodeToggle(action)
+
+            is SettingsAction.DataClick.HideCodesToggle ->
+                handleHideCodesToggle(action)
         }
     }
 
@@ -490,6 +501,7 @@ class SettingsViewModel @Inject constructor(
             sharedAccountsState: SharedVerificationCodesState,
             isScreenCaptureAllowed: Boolean,
             isShowNextCodeEnabled: Boolean,
+            isHideCodesEnabled: Boolean,
             isDynamicColorsEnabled: Boolean,
             appTimeout: AppTimeout,
         ): SettingsState {
@@ -520,6 +532,7 @@ class SettingsViewModel @Inject constructor(
                 showDefaultSaveOptionRow = shouldShowDefaultSaveOption,
                 allowScreenCapture = isScreenCaptureAllowed,
                 isShowNextCodeEnabled = isShowNextCodeEnabled,
+                isHideCodesEnabled = isHideCodesEnabled,
                 hasBiometricsSupport = true,
                 appTimeout = appTimeout,
             )
@@ -545,6 +558,7 @@ data class SettingsState(
     val allowScreenCapture: Boolean,
     val isShowNextCodeEnabled: Boolean,
     val appTimeout: AppTimeout,
+    val isHideCodesEnabled: Boolean = false,
 ) : Parcelable {
 
     /**
@@ -736,6 +750,11 @@ sealed class SettingsAction {
          * Indicates the user toggled the show next code switch.
          */
         data class ShowNextCodeToggle(val enabled: Boolean) : DataClick()
+
+        /**
+         * Indicates the user toggled the hide codes switch.
+         */
+        data class HideCodesToggle(val enabled: Boolean) : DataClick()
     }
 
     /**

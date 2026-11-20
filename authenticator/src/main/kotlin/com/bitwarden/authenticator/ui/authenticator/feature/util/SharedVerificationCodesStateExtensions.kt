@@ -15,6 +15,7 @@ import kotlinx.collections.immutable.toImmutableList
 fun SharedVerificationCodesState.Success.toSharedCodesDisplayState(
     alertThresholdSeconds: Int,
     isShowNextCodeEnabled: Boolean,
+    isHideCodesEnabled: Boolean = false,
     currentSections: List<SharedCodesDisplayState.SharedCodesAccountSection> = emptyList(),
 ): SharedCodesDisplayState.Codes {
     val codesMap =
@@ -31,6 +32,7 @@ fun SharedVerificationCodesState.Success.toSharedCodesDisplayState(
                 // show "Copy to Bitwarden vault" action.
                 sharedVerificationCodesState = SharedVerificationCodesState.Error,
                 showOverflow = false,
+                isHideCodesEnabled = isHideCodesEnabled,
             ),
         )
     }

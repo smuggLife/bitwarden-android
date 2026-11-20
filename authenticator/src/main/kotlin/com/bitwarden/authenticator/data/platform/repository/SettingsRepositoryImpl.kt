@@ -148,6 +148,12 @@ class SettingsRepositoryImpl(
                 initialValue = isShowNextCodeEnabled,
             )
 
+    override var isHideCodesEnabled: Boolean
+        get() = settingsDiskSource.isHideCodesEnabled ?: false
+        set(value) {
+            settingsDiskSource.isHideCodesEnabled = value
+        }
+
     override var hasUserDismissedDownloadBitwardenCard: Boolean
         get() = settingsDiskSource.hasUserDismissedDownloadBitwardenCard ?: false
         set(value) {

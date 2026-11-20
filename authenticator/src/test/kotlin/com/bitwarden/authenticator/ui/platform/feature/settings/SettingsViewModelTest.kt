@@ -77,6 +77,8 @@ class SettingsViewModelTest : BaseViewModelTest() {
         every { isDynamicColorsEnabledFlow } returns mutableIsDynamicColorsEnabledFlow
         every { isShowNextCodeEnabled } returns false
         every { isShowNextCodeEnabled = any() } just runs
+        every { isHideCodesEnabled } returns false
+        every { isHideCodesEnabled = any() } just runs
         every { isShowNextCodeEnabledFlow } returns mutableIsShowNextCodeEnabledFlow
         every { appTimeoutState = any() } just runs
         every { appTimeoutStateFlow } returns mutableAppTimeoutStateFlow
